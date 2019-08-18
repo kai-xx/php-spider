@@ -4,11 +4,23 @@ use Bootstrap\SpiderIntoRedis;
 
 class Home
 {
+    /**
+     * @var array
+     */
     public static $config;
+
+    /**
+     * Home constructor.
+     * @param array $config
+     */
     public function __construct(array $config)
     {
         self::$config = $config;
     }
+
+    /**
+     * @throws \Exception
+     */
     public function handle(){
         try{
             $spider = new SpiderIntoRedis(self::$config);

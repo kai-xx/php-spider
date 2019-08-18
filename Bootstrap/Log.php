@@ -13,7 +13,7 @@ class Log
      * log文件地址
      * @var string
      */
-    public static $log_file = "Log/php-spider.log";
+    public static $log_file = "./Log/php-spider.log";
     /**
      * 日志级别
      * @var string
@@ -73,12 +73,12 @@ class Log
             'info',
             'error'
         ])) return false;
-        $msg = sprintf("%s|%s|%s",
+        $msg = sprintf("%s | %s | %s",
             date("Y-m-d H:i:s"),
             self::$type,
-            self::message());
-        @file_put_contents(self::$log_file, $msg, FILE_APPEND | LOCK_EX);
-
+            self::$message) . PHP_EOL;
+        echo $msg;
+        file_put_contents(self::$log_file, $msg, FILE_APPEND | LOCK_EX);
     }
 
 }

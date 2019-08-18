@@ -29,11 +29,10 @@ class Tool
      */
     public static function getUrlContent(string $url){
         $url = self::completionUrl($url);
+        self::$url = $url;
         @$handle = fopen($url, "r");
         if(error_get_last()){//捕获异常（不一定是错误）
-            $err = new \Exception("你的URL好像不对！要不换一个？");
-            echo $err->getMessage();
-//            Log::error(sprintf("URL为：%s，不合法，错误信息为：%s", $url, $err->getMessage()));
+            Log::error(sprintf("URL为：%s，不合法，错误信息为：%s", $url, "url异常"));
             return false;
         }
         if($handle){
@@ -55,8 +54,11 @@ class Tool
         $reg_tag_a = '/<[a|A].*?href=[\'\"]{0,1}([^>\'\"\ ]*).*?>/';
         $result = preg_match_all($reg_tag_a,$web_content,$match_result);
         if($result){
-            return $match_result[1];
+//            return $match_result[1];
+            return self::reviseUrl(trim(self::$url, "/"), $match_result[1]);
         }
+
+
     }
 
     /**

@@ -7,9 +7,6 @@ use Db\RedisOwn;
 
 class SpiderIntoRedis
 {
-    // todo 1 获取页面所有链接 2 分类链接 3 获取三级链接
-    // todo 1 获取地址中 一级地址 2 根据一级地址 分类地址
-    // todo 1 设置一个链接的爬取时间
     /**
      * 爬取URL
      * @var string
@@ -59,11 +56,15 @@ class SpiderIntoRedis
     public function setUrl($url){
         self::$url = $url;
     }
-    public function getHomeUrl()
+    public function getHomeUrl($end = false)
     {
         try{
+            $parse = parse_url(self::$url);
+            $host = $parse['host'] ?? '';
+            if (in_array($host, self::$filterMain)) return;
             $content = Tool::getUrlContent(self::$url);
             $urlArray = Tool::filterUrl($content);
+            if (empty($urlArray)) return;
             foreach ($urlArray as $item){
                 if (empty($item)) continue;
                 $main = Tool::getMain($item);
@@ -73,11 +74,13 @@ class SpiderIntoRedis
                         // 写入redis 最终抓取队列
                         $this->addRedis($item);
                     }else{
+                        if ($end) continue;
                         //  写入父级URL队列
                         $this->addRedis($item, false);
                     }
                 }
             }
+            return $content;
         }catch (\Exception $e){
             throw new \Exception("抓取异常，"  . $e->getMessage());
         }
@@ -104,21 +107,24 @@ class SpiderIntoRedis
                 return false;
             }
 
-            $key = self::encodeKey($scheme . "://" . $host);
+            $key = self::encodeKey(static::patchUrl($scheme, $host));
         }else{
             $key = "url-path-parent";
-            $path = self::encodeKey($url);
+            $path = $url;
         }
         $skey =  "index_" . $key;
         $check = RedisOwn::connect()->SISMEMBER($skey, $path);
         if ($check === false){
             $indexResult = RedisOwn::connect()->sadd($skey, $path);
             if ($indexResult){
+                Log::info(sprintf("域名写入redis集合成功，key为%s，url为：%s", $skey, $url));
                 $lkey =  "list_" . $key;
                 $result = RedisOwn::connect()->rpush($lkey, $path);
                 if (!$result){
                     Log::error(sprintf("域名写入redis队列失败，key为%s，url为：%s", $lkey, $url));
                     return false;
+                }else{
+                    Log::info(sprintf("域名写入redis队列成功，key为%s，url为：%s", $lkey, $url));
                 }
             }else{
                 Log::error(sprintf("域名写入redis集合失败，key为%s，url为：%s", $skey, $url));
@@ -126,10 +132,33 @@ class SpiderIntoRedis
             }
         }
     }
+
+    /**
+     * 加密key
+     * @param $key
+     * @return string
+     */
     public static function encodeKey($key){
         return base64_encode($key);
     }
+
+    /**
+     * 解密key
+     * @param $key
+     * @return string
+     */
     public static function decodeKey($key){
         return base64_decode($key);
+    }
+
+    public static function patchUrl($scheme, $host)
+    {
+        $str = substr($host , 0 , 2);
+        if ($str == "//"){
+            $result = $scheme . ":" . $host;
+        }else{
+            $result = $scheme . "://" . $host;
+        }
+        return $result;
     }
 }
