@@ -21,12 +21,10 @@ class Autoload
 
     public function import($className)
     {
-        $filePath = $className . '.php';
-        $filePath = '/Db/RedisOwn.php';
-        echo $filePath . PHP_EOL;
-        var_dump(is_file("../".$filePath));exit;
+        $class_path = str_replace('\\', DIRECTORY_SEPARATOR, $className);
+        $filePath = APP_PATH . $class_path . '.php';
+
         if (is_file($filePath)) {
-            var_dump($filePath);exit;
             require $filePath;
         }
     }
