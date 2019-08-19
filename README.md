@@ -18,8 +18,6 @@
 │   └── Help.php
 ├── index.php
 ├── Log
-│   ├── default
-│   ├── file
 │   └── php-spider.log
 ├── Model
 │   ├── Base.php

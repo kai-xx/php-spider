@@ -1,5 +1,5 @@
 /vendor
-/.idea/*
+.idea/*
 /composer.lock
 _ide_helper*
 .phpstorm.meta.php

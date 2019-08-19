@@ -88,11 +88,11 @@ class SpiderIntoRedis
 
     /**
      * url写入redis中
-     * @param string $url
-     * @param bool $last
+     * @param $url
+     * @param $last
      * @return bool
      */
-    public function addRedis(string $url, bool $last=true)
+    public function addRedis($url, $last=true)
     {
         $parse = parse_url($url);
         $scheme = $parse['scheme'] ?? '';
