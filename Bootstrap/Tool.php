@@ -2,6 +2,8 @@
 
 namespace Bootstrap;
 
+use Db\RedisOwn;
+
 /**
  * 工具类
  * Class Tool
@@ -30,19 +32,31 @@ class Tool
     public static function getUrlContent(string $url){
         $url = self::completionUrl($url);
         self::$url = $url;
-        @$handle = fopen($url, "r");
-        if(error_get_last()){//捕获异常（不一定是错误）
-            Log::error(sprintf("URL为：%s，不合法，错误信息为：%s", $url, "url异常"));
-            return false;
-        }
-        if($handle){
-            $content = stream_get_contents($handle,1024*1024);//将资源流读入字符串
-            fclose($handle);
-            return $content;
-        }else{
-            fclose($handle);
-            return false;
-        }
+//        @$handle = fopen($url, "r");
+//        if(error_get_last()){//捕获异常（不一定是错误）
+//            Log::error(sprintf("URL为：%s，不合法，错误信息为：%s", $url, "url异常"));
+//            return false;
+//        }
+//        if($handle){
+//            $content = stream_get_contents($handle,1024*1024);//将资源流读入字符串
+//            fclose($handle);
+//            return $content;
+//        }else{
+//            fclose($handle);
+//            return false;
+//        }
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+//        curl_setopt($ch, CURLOPT_HTTPPROXYTUNNEL, TRUE);
+//        curl_setopt($ch, CURLOPT_PROXY, 125.21.23.6:8080);
+//        url_setopt($ch, CURLOPT_PROXYUSERPWD, 'user:password');//如果要密码的话，加上这个
+        $result=curl_exec($ch);
+        curl_close($ch);
+        //文本转码
+        $outPageTxt = mb_convert_encoding($result, 'utf-8','gbk');
+        return $outPageTxt;
     }
 
     /**
@@ -127,5 +141,15 @@ class Tool
             $url = "http://".$url;
         }
         return $url;
+    }
+
+    public static function counter($key, $pid = 0, $timestemp = 3600)
+    {//set key value ex timestemp nx
+        $result = RedisOwn::connect($pid)->setnx($key, 1);
+        if (empty($result)){
+            $result = RedisOwn::connect($pid)->incr($key);
+        }
+        RedisOwn::connect($pid)->EXPIRE($key, $timestemp);
+        return $result;
     }
 }

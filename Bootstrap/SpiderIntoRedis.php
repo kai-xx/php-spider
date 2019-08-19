@@ -92,7 +92,7 @@ class SpiderIntoRedis
      * @param bool $last
      * @return bool
      */
-    public function addRedis(string $url, bool $last = true)
+    public function addRedis(string $url, bool $last=true)
     {
         $parse = parse_url($url);
         $scheme = $parse['scheme'] ?? '';

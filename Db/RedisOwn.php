@@ -25,6 +25,12 @@ class RedisOwn
         static::$config['prefix'] = $config['prefix'] ?? null;
         return;
     }
+
+    /**
+     * @param int $pid
+     * @return \Redis
+     * @throws \Exception
+     */
     public static function connect($pid = 0){
         self::$pid = $pid;
         if (empty(static::$_instance[$pid])){
@@ -47,6 +53,7 @@ class RedisOwn
             if ($redis->ping()){
                 $redis->select(0);
                 $redis->setOption(\Redis::OPT_PREFIX, static::$config['prefix']);  //设置表前缀为spider_
+                $redis->exec();
                 return $redis;
             }else{
                 Log::error("redis连接失败");

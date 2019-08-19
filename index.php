@@ -17,7 +17,7 @@ if( PHP_SAPI != 'cli' )
 {
     exit("You must run the CLI environment" . PHP_EOL);
 }
-define('APP_PATH', '../php-spider/');
+define('APP_PATH', '../spider/');
 //引入自动加载类
 require './Bootstrap/Autoload.php';
 
